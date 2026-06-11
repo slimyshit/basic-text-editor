@@ -1,0 +1,26 @@
+.vs/
+
+# Build outputs
+Debug/
+Release/
+x64/
+x86/
+
+# Intermediate build files
+*.obj
+*.tlog
+*.pch
+*.idb
+*.ilk
+*.pdb
+*.exe
+*.dll
+
+# Visual Studio user settings
+*.user
+*.VC.db
+*.VC.opendb
+*.opendb
+
+# Logs
+*.log
