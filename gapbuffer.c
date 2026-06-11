@@ -27,9 +27,14 @@ editorBuffer Buffer_AddChar(char *string, editorBuffer orgBuffer) {
 	if ((orgBuffer.gap_end - orgBuffer.gap_start) <= strlen(string))
 	{
 		int old_size = orgBuffer.size;
-		orgBuffer.size = orgBuffer.size * 2;
-		orgBuffer.buffer = reallocate(orgBuffer.buffer, orgBuffer.size);
-		orgBuffer.gap_end = orgBuffer.gap_end + (orgBuffer.size - old_size);
+		int new_size = orgBuffer.size * 2;
+		char* new_buffer = reallocate(orgBuffer.buffer, new_size);
+		if (new_buffer != orgBuffer.buffer) {
+			orgBuffer.buffer = new_buffer;
+			orgBuffer.size = new_size;
+			orgBuffer.gap_end = orgBuffer.gap_end + (orgBuffer.size - old_size);
+		}
+
 	}
 
 	int index = 0;

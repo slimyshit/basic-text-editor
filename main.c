@@ -77,14 +77,14 @@ int main()
 			if (event.type == SDL_EVENT_TEXT_INPUT) {
 				Buffer = Buffer_AddChar(event.text.text, Buffer);
 			}
-		SDL_SetRenderDrawColor(render, 54, 56, 64, 1.0);
+		SDL_SetRenderDrawColor(render, 54, 56, 64, 255);
 		SDL_RenderClear(render);
 
 		surface = TTF_RenderText_Blended(font, Buffer.buffer, 0, color);
 		frect.w = (float)surface->w;
 		frect.h = (float)surface->h;
-		SDL_DestroySurface(surface);
 		texture = SDL_CreateTextureFromSurface(render, surface);
+		SDL_DestroySurface(surface);
 		SDL_RenderTexture(render, texture, NULL, &frect);
 		SDL_DestroyTexture(texture);
 		SDL_RenderPresent(render);
