@@ -6,11 +6,15 @@ typedef struct {
 	int size;
 	int gap_start;
 	int gap_end;
-	int cursor;
+	char mode[10];
 }editorBuffer;
 
 editorBuffer Buffer_Init();
 
-editorBuffer Buffer_AddChar(char* string, editorBuffer orgBuffer);
+void Buffer_AddChar(char* string, editorBuffer* orgBuffer);
+
+void Buffer_DelChar(editorBuffer* orgBuffer);
+
+void Buffer_NewLine(editorBuffer* orgBuffer);
 
 #endif // 

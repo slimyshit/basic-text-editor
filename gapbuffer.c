@@ -22,36 +22,66 @@ char* reallocate(char* lastHeapAd,int size)
 	return nHeap;
 }
 
-editorBuffer Buffer_AddChar(char *string, editorBuffer orgBuffer) {
-
-	if ((orgBuffer.gap_end - orgBuffer.gap_start) <= strlen(string))
+void Buffer_Full_Check(char* string, editorBuffer* orgBuffer)
+{
+	if ((orgBuffer->gap_end - orgBuffer->gap_start) <= strlen(string))
 	{
-		int old_size = orgBuffer.size;
-		int new_size = orgBuffer.size * 2;
-		char* new_buffer = reallocate(orgBuffer.buffer, new_size);
-		if (new_buffer != orgBuffer.buffer) {
-			orgBuffer.buffer = new_buffer;
-			orgBuffer.size = new_size;
-			orgBuffer.gap_end = orgBuffer.gap_end + (orgBuffer.size - old_size);
+		int old_size = orgBuffer->size;
+		int new_size = orgBuffer->size * 2;
+		char* new_buffer = reallocate(orgBuffer->buffer, new_size);
+		if (new_buffer != orgBuffer->buffer) {
+			orgBuffer->buffer = new_buffer;
+			orgBuffer->size = new_size;
+			orgBuffer->gap_end = orgBuffer->gap_end + (orgBuffer->size - old_size);
+			printf("%d", orgBuffer->size);
 		}
 
 	}
+}
+
+void Buffer_AddChar(char* string, editorBuffer* orgBuffer) {
+
+	Buffer_Full_Check(string,orgBuffer);
 
 	int index = 0;
-	int cursorpos = orgBuffer.cursor;
+	int cursorpos = orgBuffer->gap_start;
 
 	while (string[index] != '\0')
 	{
-		orgBuffer.buffer[cursorpos] = string[index];
+		orgBuffer->buffer[cursorpos] = string[index];
 		index++;
 		cursorpos++;
 	}
 
-	orgBuffer.cursor = cursorpos;
-	orgBuffer.gap_start = cursorpos;
+	orgBuffer->gap_start = cursorpos;
+}
 
+void Buffer_DelChar(editorBuffer* orgBuffer)
+{
+	if (orgBuffer->gap_start > 0)
+	{
+		orgBuffer->gap_start = orgBuffer->gap_start - 1;
+	}
+}
 
-	return orgBuffer;
+void Buffer_NewLine(editorBuffer* orgBuffer)
+{
+	orgBuffer->buffer[orgBuffer->gap_start] = '\n';
+	orgBuffer->gap_start++;
+}
+
+editorBuffer Buffer_navigate_cursor(char* key, editorBuffer orgBuffer)
+{
+	if (key == "right")
+	{
+		orgBuffer.gap_start = orgBuffer.gap_start + 1;
+		return orgBuffer;
+	}
+	if (key == "left")
+	{
+		orgBuffer.gap_start = orgBuffer.gap_start - 1;
+		return orgBuffer;
+	}
 }
 
 editorBuffer Buffer_Init()
@@ -60,7 +90,6 @@ editorBuffer Buffer_Init()
 	array.size = 100;
 	array.gap_start = 0;
 	array.gap_end = 100;
-	array.cursor = 0;
 	array.buffer = allocate(array.size);
 	return array;
 }

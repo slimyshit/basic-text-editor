@@ -21,9 +21,15 @@
     <ClCompile Include="gapbuffer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="eventHandeling.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gapbuffer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="eventHandling.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
