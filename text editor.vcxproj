@@ -140,7 +140,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="eventHandeling.c" />
+    <ClCompile Include="eventHandling.c" />
     <ClCompile Include="gapbuffer.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>

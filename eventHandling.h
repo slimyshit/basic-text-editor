@@ -6,5 +6,4 @@
 #include <stdbool.h>
 
 void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done);
-
 #endif // !EVENTHANDLING.H
