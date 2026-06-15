@@ -17,4 +17,6 @@ void Buffer_DelChar(editorBuffer* orgBuffer);
 
 void Buffer_NewLine(editorBuffer* orgBuffer);
 
+void Buffer_navigate_cursor_x(char* key, editorBuffer* orgBuffer);
+
 #endif // 

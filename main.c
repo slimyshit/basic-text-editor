@@ -23,7 +23,12 @@ void quit(TTF_TextEngine * engine, TTF_Font* font, SDL_Renderer* render, SDL_Win
 
 void create_texture(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_FRect* frect, SDL_Color color)
 {
-	SDL_Surface* surface = TTF_RenderText_Blended(font, text, 0, color);
+	if (text == NULL || text[0] == '\0') {
+		frect->w = 0;
+		frect->h = 0;
+		return;
+	}
+	SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(font, text, 0, color, 0);
 	frect->w = (float)surface->w;
 	frect->h = (float)surface->h;
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(render, surface);
@@ -32,9 +37,9 @@ void create_texture(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_
 	SDL_DestroyTexture(texture);
 }
 
-void draw_Cursor(SDL_FRect* cursor, SDL_FRect* frect,SDL_Renderer* render, int lines, int line_height)
+void draw_Cursor(SDL_FRect* cursor, SDL_FRect* frect,SDL_Renderer* render)
 {
-	cursor->w = 5;
+	cursor->w = 2;
 	cursor->h = 20;
 	cursor->x = frect->x;
 	cursor->y = frect->y;
@@ -42,57 +47,76 @@ void draw_Cursor(SDL_FRect* cursor, SDL_FRect* frect,SDL_Renderer* render, int l
 	SDL_RenderFillRect(render, cursor);
 }
 
-void out_of_bound(SDL_Window* window, SDL_FRect* frect, int glyph_w, int* lines, int line_height)
+void new_line(SDL_FRect* frect, float* lines, float line_h)
 {
-	int width, height;
-	SDL_GetWindowSize(window, &width, &height);
-	if ((frect->x+glyph_w) >= width)
-	{
-		(*lines)++;
-		frect->x = 10;
-		frect->y = (frect->y + line_height) + 5;
+	(*lines)++;
+	frect->x = 10;
+	frect->y = 10.0 + (*lines * line_h);
+}
+
+char* Buffer_To_String(editorBuffer* Buffer)
+{
+	int text_length = Buffer->size - (Buffer->gap_end - Buffer->gap_start + 1) ;
+	char* text = malloc(text_length + 1);
+	if (text == NULL) {
+
+		return "";
 	}
+	memmove(text, Buffer->buffer, Buffer->gap_start);
+	memmove(text + Buffer->gap_start, Buffer->buffer + Buffer->gap_end + 1, Buffer->size - Buffer->gap_end + 1);
+	text[text_length] = '\0';
+	return text;
 }
 
-void get_character_spacing(TTF_Font *font, SDL_FRect *frect, char *temp, int i, int* character_w, int* character_h)
+char* Build_Wrapped_Line(SDL_Renderer* render, SDL_Window* window, SDL_FRect* frect, TTF_Font* font, char* text, int* index, float* lines, float line_h)
 {
-	TTF_GetStringSize(font, temp, i, character_w, character_h);
-	int	glyph_width = *character_w;
-	frect->x = frect->x + glyph_width;
-}
-
-void new_line(editorBuffer* Buffer, SDL_FRect* frect, int* lines, int line_height, int* index)
-{
-	if (Buffer->buffer[*index] == '\n')
+	static char wrappedText[1024];
+	int counter = 0;
+	int character_w, character_h;
+	int len = (int)strlen(text);
+	int width, height;
+	char temp[2];
+	SDL_FRect cursor;
+	frect->x = 10;
+	frect->y = 10;
+	bool window_end_reached;
+	while (*index < len)
 	{
-		(*lines)++;
-		frect->x = 10;
-		frect->y = (frect->y + line_height) + 5;
-		if (++*index == Buffer->gap_start)
-		{
-			if (Buffer->gap_end == Buffer->size)
-			{
-				*index = Buffer->size;
+		if(text[*index] != '\n') {
+			temp[0] = text[*index];
+			temp[1] = '\0';
+			TTF_GetStringSize(font, temp, 1, &character_w, &character_h);
+			SDL_GetWindowSize(window, &width, &height);
+			if	((frect->x + character_w) < width) {
+				wrappedText[counter] = temp[0];
+				frect->x += character_w;
+				counter++;
+				(*index)++;
 			}
-			else
-			{
-				*index = Buffer->gap_end + 1;
+			else {
+				new_line(frect, lines, line_h);
+				wrappedText[counter] = '\n';
+				counter++;
+				wrappedText[counter] = text[*index];
+				frect->x += character_w;
+				counter++;
+				(*index)++;
 			}
 		}
+		else {
+			new_line(frect, lines, line_h);
+			wrappedText[counter] = '\n';
+			counter++;
+			(*index)++;
+		}
 	}
+	draw_Cursor(&cursor, frect, render);
+	frect->x = 10;
+	frect->y = 10;
+	wrappedText[counter] = '\0';
+	return wrappedText;
+	
 }
-
-SDL_Color set_color()
-{
-	SDL_Color color;
-	color.r = 255;
-	color.g = 255;
-	color.b = 255;
-	color.a = 255;
-	return color;
-}
-
-
 
 
 int main()
@@ -137,58 +161,41 @@ int main()
 	engine = TTF_CreateRendererTextEngine(render);
 	SDL_StartTextInput(window);
 	
-
-	SDL_Color color = set_color();
-	SDL_FRect frect, cursor;
+	SDL_FRect frect;
 	SDL_Event event;
 	editorBuffer Buffer;
+	SDL_Color color;
+	color.r = 255;
+	color.g = 255;
+	color.b = 255;
+	color.a = 255;;
 
 	Buffer = Buffer_Init();
 
 	bool done = false;
-	int  line_height = 10;
-	char temp[2];
-	int character_w, character_h;
-
-
+	bool move_cursor = false;
+	float line_height = 15;
 
 	while (!done) {	
+ 
 		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, &done);
+			event_Handle(&event, &Buffer, &done, &move_cursor);
 		}	
 		int index = 0;
-		frect.x = 10;
-		frect.y = 10;;
-		int lines = 0;
+		float lines = 0;
 
-		SDL_SetRenderDrawColor(render, 54, 56, 64, 255);
+		SDL_SetRenderDrawColor(render, 54, 56, 64, 10);
 		SDL_RenderClear(render);
 
-		while(index < Buffer.size ) {
-			if (index == Buffer.gap_start)
-			{
-				if (Buffer.gap_end == Buffer.size) {
-					break;
-				}
-				index = Buffer.gap_end + 1;
-			}
+		char* text = Buffer_To_String(&Buffer);
 
-			
-			new_line(&Buffer, &frect, &lines, line_height, &index);
-
-			temp[0] = Buffer.buffer[index];
-			temp[1] = '\0';	
-
-			create_texture(render, font, temp, &frect, color);
-			get_character_spacing(font, &frect, temp, 1, &character_w, &character_h);
-			out_of_bound(window, &frect, character_w, &lines, line_height);
-
-			index++;
-		}
-		draw_Cursor(&cursor, &frect, render, lines, line_height);
+		char* string = Build_Wrapped_Line(render, window, &frect, font, text, &index, &lines, line_height);	
+		
+		create_texture(render, font, string, &frect, color);
+		free(text);
+		
 		SDL_RenderPresent(render);
 	}
 
 	quit(engine, font, render, window , Buffer);
-	
 }
