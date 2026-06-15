@@ -4,13 +4,11 @@
 #include <stdbool.h>
 #include "gapbuffer.h"
 #include "eventHandling.h"
+#include "textureCache.h"
 
 
-void quit(TTF_TextEngine * engine, TTF_Font* font, SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
+void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 {
-	TTF_DestroyRendererTextEngine(engine);
-	TTF_CloseFont(font);
-
 	SDL_DestroyRenderer(render);
 	SDL_DestroyWindow(window);
 
@@ -21,28 +19,10 @@ void quit(TTF_TextEngine * engine, TTF_Font* font, SDL_Renderer* render, SDL_Win
 	free(Buffer.buffer);
 }
 
-void create_texture(SDL_Renderer* render, TTF_Font* font, const char* text, SDL_FRect* frect, SDL_Color color)
-{
-	if (text == NULL || text[0] == '\0') {
-		frect->w = 0;
-		frect->h = 0;
-		return;
-	}
-	SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(font, text, 0, color, 0);
-	frect->w = (float)surface->w;
-	frect->h = (float)surface->h;
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(render, surface);
-	SDL_DestroySurface(surface);
-	SDL_RenderTexture(render, texture, NULL, frect);
-	SDL_DestroyTexture(texture);
-}
 
-void draw_Cursor(SDL_FRect* cursor, SDL_FRect* frect,SDL_Renderer* render)
+
+void draw_Cursor(SDL_FRect* cursor,SDL_Renderer* render)
 {
-	cursor->w = 2;
-	cursor->h = 20;
-	cursor->x = frect->x;
-	cursor->y = frect->y;
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderFillRect(render, cursor);
 }
@@ -60,7 +40,7 @@ char* Buffer_To_String(editorBuffer* Buffer)
 	char* text = malloc(text_length + 1);
 	if (text == NULL) {
 
-		return "";
+		return NULL;
 	}
 	memmove(text, Buffer->buffer, Buffer->gap_start);
 	memmove(text + Buffer->gap_start, Buffer->buffer + Buffer->gap_end + 1, Buffer->size - Buffer->gap_end + 1);
@@ -68,56 +48,113 @@ char* Buffer_To_String(editorBuffer* Buffer)
 	return text;
 }
 
-char* Build_Wrapped_Line(SDL_Renderer* render, SDL_Window* window, SDL_FRect* frect, TTF_Font* font, char* text, int* index, float* lines, float line_h)
+char* Build_Wrapped_Line(SDL_Window* window, char* text)
 {
-	static char wrappedText[1024];
 	int counter = 0;
-	int character_w, character_h;
+	int index = 0;
 	int len = (int)strlen(text);
 	int width, height;
 	char temp[2];
-	SDL_FRect cursor;
-	frect->x = 10;
-	frect->y = 10;
-	bool window_end_reached;
-	while (*index < len)
+	Glyph* glyph;
+	SDL_FRect frect;
+	frect.x = 10;
+
+	if (len == 0) return calloc(1, sizeof(char));
+
+	char* wrappedText = malloc((len * 2) + 1);
+
+	if (wrappedText == NULL)
 	{
-		if(text[*index] != '\n') {
-			temp[0] = text[*index];
+		return NULL;
+	}
+
+	while (index < len)
+	{
+		if(text[index] != '\n') {
+			temp[0] = text[index];
 			temp[1] = '\0';
-			TTF_GetStringSize(font, temp, 1, &character_w, &character_h);
+			glyph = get_Glyph(text[index]);
 			SDL_GetWindowSize(window, &width, &height);
-			if	((frect->x + character_w) < width) {
+			if	((frect.x + glyph->width) < width) {
 				wrappedText[counter] = temp[0];
-				frect->x += character_w;
+				frect.x += glyph->advance;
 				counter++;
-				(*index)++;
+				index++;
 			}
 			else {
-				new_line(frect, lines, line_h);
+				frect.x = 10;
 				wrappedText[counter] = '\n';
 				counter++;
-				wrappedText[counter] = text[*index];
-				frect->x += character_w;
+				wrappedText[counter] = text[index];
+				frect.x += glyph->advance;
 				counter++;
-				(*index)++;
+				index++;
 			}
 		}
 		else {
-			new_line(frect, lines, line_h);
+			frect.x = 10;
 			wrappedText[counter] = '\n';
 			counter++;
-			(*index)++;
+			index++;
 		}
 	}
-	draw_Cursor(&cursor, frect, render);
-	frect->x = 10;
-	frect->y = 10;
 	wrappedText[counter] = '\0';
 	return wrappedText;
-	
+
 }
 
+void render_Text(const char* wrappedText, SDL_FRect* frect, SDL_Renderer* render)
+{
+	Glyph* glyph;
+	int index = 0;
+	int len = strlen(wrappedText);
+	float lines = 0;
+	float line_h = 15.0;
+	while (index < len)
+	{
+		char c = wrappedText[index];
+		if (c != '\n')
+		{
+			glyph = get_Glyph(c);
+			frect->w = glyph->width;
+			frect->h = glyph->height;
+			SDL_RenderTexture(render, glyph->texture, NULL,frect);
+			frect->x += glyph->advance;
+		}
+		else {
+			new_line(frect, &lines, line_h);
+		}
+		
+		index++;
+	}
+}
+
+void Get_New_Cursor_Coord(SDL_FRect* cursor, editorBuffer Buffer, char* text)
+{
+	cursor->w = 3;
+	cursor->h = 20;
+	cursor->x = 10;
+	cursor->y = 10;
+	Glyph* glyph;
+	int line_count = 0;
+	int index = 0;
+	int len = strlen(text);
+	while(index < Buffer.cursor && index < len)
+	{
+		char c = text[index];
+		if (c != '\n') {
+			glyph = get_Glyph(c);
+			cursor->x += glyph->advance;
+		}
+		else {
+			line_count++;
+			cursor->x = 10;
+			cursor->y = 10 + (line_count * 15) ;
+			continue;
+		}
+		index++;
+	}
+}
 
 int main()
 {
@@ -155,47 +192,45 @@ int main()
 
 
 
-	TTF_Font* font;
-	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 16.0);
-	TTF_TextEngine* engine;
-	engine = TTF_CreateRendererTextEngine(render);
+	
+	
 	SDL_StartTextInput(window);
 	
-	SDL_FRect frect;
+	SDL_FRect frect, cursor;
 	SDL_Event event;
 	editorBuffer Buffer;
-	SDL_Color color;
-	color.r = 255;
-	color.g = 255;
-	color.b = 255;
-	color.a = 255;;
-
 	Buffer = Buffer_Init();
+
+	Init_Texture(render);
 
 	bool done = false;
 	bool move_cursor = false;
-	float line_height = 15;
+
 
 	while (!done) {	
- 
 		while (SDL_PollEvent(&event)) {
 			event_Handle(&event, &Buffer, &done, &move_cursor);
 		}	
-		int index = 0;
-		float lines = 0;
 
-		SDL_SetRenderDrawColor(render, 54, 56, 64, 10);
+		frect.x = 10;
+		frect.y = 10;
+
+		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
 		SDL_RenderClear(render);
 
 		char* text = Buffer_To_String(&Buffer);
-
-		char* string = Build_Wrapped_Line(render, window, &frect, font, text, &index, &lines, line_height);	
+		char* string = Build_Wrapped_Line(window, text);	
 		
-		create_texture(render, font, string, &frect, color);
 		free(text);
 		
+		render_Text(string, &frect, render);
+
+		Get_New_Cursor_Coord(&cursor, Buffer, string);
+		free(string);
+		draw_Cursor(&cursor, render);
+
 		SDL_RenderPresent(render);
 	}
-
-	quit(engine, font, render, window , Buffer);
+	Destroy_Cache();
+	quit(render, window , Buffer);
 }

@@ -6,7 +6,7 @@ typedef struct {
 	int size;
 	int gap_start;
 	int gap_end;
-	char mode[10];
+	int cursor;
 }editorBuffer;
 
 editorBuffer Buffer_Init();
@@ -19,4 +19,4 @@ void Buffer_NewLine(editorBuffer* orgBuffer);
 
 void Buffer_navigate_cursor_x(char* key, editorBuffer* orgBuffer);
 
-#endif // 
+#endif 

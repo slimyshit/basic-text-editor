@@ -58,6 +58,7 @@ void Buffer_AddChar(char* string, editorBuffer* orgBuffer) {
 		orgBuffer->buffer[orgBuffer->gap_start] = string[index];
 		index++;
 		orgBuffer->gap_start++;
+		orgBuffer->cursor++;
 	}
 }
 
@@ -66,6 +67,8 @@ void Buffer_DelChar(editorBuffer* orgBuffer)
 	if (orgBuffer->gap_start > 0)
 	{
 		orgBuffer->gap_start = orgBuffer->gap_start - 1;
+		orgBuffer->cursor--;
+
 	}
 }
 
@@ -73,22 +76,26 @@ void Buffer_NewLine(editorBuffer* orgBuffer)
 {
 	orgBuffer->buffer[orgBuffer->gap_start] = '\n';
 	orgBuffer->gap_start++;
+	orgBuffer->cursor++;
+
 }
 
 void Buffer_navigate_cursor_x(char*key, editorBuffer* orgBuffer)
 {
 	if (strcmp(key, "right") == 0 && orgBuffer->gap_end < (orgBuffer->size - 1))
 	{
-		orgBuffer->gap_start = orgBuffer->gap_start + 1;
-		orgBuffer->gap_end = orgBuffer->gap_end + 1;
+		orgBuffer->gap_start++;
+		orgBuffer->cursor++;
+		orgBuffer->gap_end++;
 		char overlap = orgBuffer->buffer[orgBuffer->gap_end];
 		orgBuffer->buffer[(orgBuffer->gap_start) - 1] = overlap;
 
 	}
 	if (strcmp(key, "left") == 0 && orgBuffer->gap_start > 0)
 	{
-		orgBuffer->gap_start = orgBuffer->gap_start - 1;
-		orgBuffer->gap_end = orgBuffer->gap_end - 1;
+		orgBuffer->gap_start--;
+		orgBuffer->cursor--;
+		orgBuffer->gap_end--;
 		char overlap = orgBuffer->buffer[orgBuffer->gap_start];
 		orgBuffer->buffer[(orgBuffer->gap_end) + 1] = overlap;
 	}
@@ -99,6 +106,7 @@ editorBuffer Buffer_Init()
 	editorBuffer array;
 	array.size = 100;
 	array.gap_start = 0;
+	array.cursor = 0;
 	array.gap_end = 99;
 	array.buffer = allocate(array.size);
 	return array;

@@ -143,10 +143,12 @@
     <ClCompile Include="eventHandling.c" />
     <ClCompile Include="gapbuffer.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="textureCache.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="eventHandling.h" />
     <ClInclude Include="gapbuffer.h" />
+    <ClInclude Include="textureCache.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
