@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "gapbuffer.h"
+#include "textureCache.h"
 
 char* allocate(int size)
 {
@@ -68,7 +69,6 @@ void Buffer_DelChar(editorBuffer* orgBuffer)
 	{
 		orgBuffer->gap_start = orgBuffer->gap_start - 1;
 		orgBuffer->cursor--;
-
 	}
 }
 
@@ -77,19 +77,18 @@ void Buffer_NewLine(editorBuffer* orgBuffer)
 	orgBuffer->buffer[orgBuffer->gap_start] = '\n';
 	orgBuffer->gap_start++;
 	orgBuffer->cursor++;
-
 }
 
 void Buffer_navigate_cursor_x(char*key, editorBuffer* orgBuffer)
 {
 	if (strcmp(key, "right") == 0 && orgBuffer->gap_end < (orgBuffer->size - 1))
 	{
+		
+		char overlap = orgBuffer->buffer[orgBuffer->gap_end + 1];
+		orgBuffer->buffer[(orgBuffer->gap_start)] = overlap;
+		orgBuffer->gap_end++;
 		orgBuffer->gap_start++;
 		orgBuffer->cursor++;
-		orgBuffer->gap_end++;
-		char overlap = orgBuffer->buffer[orgBuffer->gap_end];
-		orgBuffer->buffer[(orgBuffer->gap_start) - 1] = overlap;
-
 	}
 	if (strcmp(key, "left") == 0 && orgBuffer->gap_start > 0)
 	{
@@ -100,6 +99,18 @@ void Buffer_navigate_cursor_x(char*key, editorBuffer* orgBuffer)
 		orgBuffer->buffer[(orgBuffer->gap_end) + 1] = overlap;
 	}
 }
+/*void Buffer_navigate_cursor_y(char* key, editorBuffer* orgBuffer, SDL_Window* window)
+{
+	cursor n_cus;
+	int lines;
+	char* text = wrap_the_ffing_lines(orgBuffer, window, &n_cus, &lines);
+	if (strcmp(key, "up") == 0 && n_cus.cursor_line > 0 && n_cus.cursor_line <= lines)
+	{
+		n_cus.cursor_line--;
+
+	}
+}
+*/
 
 editorBuffer Buffer_Init()
 {
@@ -111,3 +122,5 @@ editorBuffer Buffer_Init()
 	array.buffer = allocate(array.size);
 	return array;
 }
+
+

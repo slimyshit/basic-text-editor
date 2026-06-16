@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 
-void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done, bool* move_cursor) {
+void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done) {
 	if (event->type == SDL_EVENT_TEXT_INPUT) {
 		Buffer_AddChar(event->text.text, Buffer);
 	}
@@ -20,12 +20,18 @@ void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done, bool* move
 		else if(event->key.key == SDLK_RIGHT)
 		{
 			Buffer_navigate_cursor_x("right", Buffer);
-			*move_cursor = true;
 		}
 		else if (event->key.key == SDLK_LEFT)
 		{
 			Buffer_navigate_cursor_x("left", Buffer);
-			*move_cursor = true;
+		}
+		else if (event->key.key == SDLK_UP)
+		{
+			//Buffer_navigate_cursor_y("up", Buffer);
+		}
+		else if (event->key.key == SDLK_DOWN)
+		{
+			//Buffer_navigate_cursor_y("down", Buffer);
 		}
 	}
 }	

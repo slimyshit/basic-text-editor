@@ -19,8 +19,6 @@ void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 	free(Buffer.buffer);
 }
 
-
-
 void draw_Cursor(SDL_FRect* cursor,SDL_Renderer* render)
 {
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
@@ -34,7 +32,7 @@ void new_line(SDL_FRect* frect, float* lines, float line_h)
 	frect->y = 10.0 + (*lines * line_h);
 }
 
-char* Buffer_To_String(editorBuffer* Buffer)
+char* Buffer_To_String(editorBuffer* Buffer, int* cursor_index)
 {
 	int text_length = Buffer->size - (Buffer->gap_end - Buffer->gap_start + 1) ;
 	char* text = malloc(text_length + 1);
@@ -43,12 +41,13 @@ char* Buffer_To_String(editorBuffer* Buffer)
 		return NULL;
 	}
 	memmove(text, Buffer->buffer, Buffer->gap_start);
-	memmove(text + Buffer->gap_start, Buffer->buffer + Buffer->gap_end + 1, Buffer->size - Buffer->gap_end + 1);
+	memmove(text + Buffer->gap_start, Buffer->buffer + Buffer->gap_end + 1 , Buffer->size - Buffer->gap_end - 1);
 	text[text_length] = '\0';
+	*cursor_index = Buffer->cursor;
 	return text;
 }
 
-char* Build_Wrapped_Line(SDL_Window* window, char* text)
+char* Build_Wrapped_Line(SDL_Window* window, char* text, int* cursor_index)
 {
 	int counter = 0;
 	int index = 0;
@@ -85,17 +84,17 @@ char* Build_Wrapped_Line(SDL_Window* window, char* text)
 				frect.x = 10;
 				wrappedText[counter] = '\n';
 				counter++;
-				wrappedText[counter] = text[index];
-				frect.x += glyph->advance;
-				counter++;
-				index++;
+				(*cursor_index)++;
+				continue;
 			}
 		}
 		else {
 			frect.x = 10;
 			wrappedText[counter] = '\n';
+			(*cursor_index)++;
 			counter++;
 			index++;
+			continue;
 		}
 	}
 	wrappedText[counter] = '\0';
@@ -107,9 +106,10 @@ void render_Text(const char* wrappedText, SDL_FRect* frect, SDL_Renderer* render
 {
 	Glyph* glyph;
 	int index = 0;
-	int len = strlen(wrappedText);
+	int len = strlen(wrappedText) ;
 	float lines = 0;
 	float line_h = 15.0;
+
 	while (index < len)
 	{
 		char c = wrappedText[index];
@@ -129,7 +129,7 @@ void render_Text(const char* wrappedText, SDL_FRect* frect, SDL_Renderer* render
 	}
 }
 
-void Get_New_Cursor_Coord(SDL_FRect* cursor, editorBuffer Buffer, char* text)
+void Get_New_Cursor_Coord(SDL_FRect* cursor, int* cursor_index, char* text)
 {
 	cursor->w = 3;
 	cursor->h = 20;
@@ -139,17 +139,21 @@ void Get_New_Cursor_Coord(SDL_FRect* cursor, editorBuffer Buffer, char* text)
 	int line_count = 0;
 	int index = 0;
 	int len = strlen(text);
-	while(index < Buffer.cursor && index < len)
+	while(index < *cursor_index && index < len)
 	{
 		char c = text[index];
 		if (c != '\n') {
 			glyph = get_Glyph(c);
-			cursor->x += glyph->advance;
+			if (glyph != NULL) { 
+				cursor->x += glyph->advance;
+			}
 		}
-		else {
+		else if(c == '\n')
+		{
 			line_count++;
+			cursor->y = 10 + (line_count * 15);
 			cursor->x = 10;
-			cursor->y = 10 + (line_count * 15) ;
+			index++;
 			continue;
 		}
 		index++;
@@ -204,12 +208,12 @@ int main()
 	Init_Texture(render);
 
 	bool done = false;
-	bool move_cursor = false;
+	int cursor_index;
 
 
 	while (!done) {	
 		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, &done, &move_cursor);
+			event_Handle(&event, &Buffer, &done);
 		}	
 
 		frect.x = 10;
@@ -218,14 +222,12 @@ int main()
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
 		SDL_RenderClear(render);
 
-		char* text = Buffer_To_String(&Buffer);
-		char* string = Build_Wrapped_Line(window, text);	
-		
+		char* text = Buffer_To_String(&Buffer, &cursor_index);
+		char* string = Build_Wrapped_Line(window, text, &cursor_index);	
 		free(text);
 		
 		render_Text(string, &frect, render);
-
-		Get_New_Cursor_Coord(&cursor, Buffer, string);
+		Get_New_Cursor_Coord(&cursor, &cursor_index, string);
 		free(string);
 		draw_Cursor(&cursor, render);
 
