@@ -5,6 +5,7 @@
 #include "gapbuffer.h"
 #include "eventHandling.h"
 #include "textureCache.h"
+#include "layout.h"
 
 
 void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
@@ -19,145 +20,33 @@ void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 	free(Buffer.buffer);
 }
 
-void draw_Cursor(SDL_FRect* cursor,SDL_Renderer* render)
+void render_text(SDL_Renderer* render, LayoutChar* layout, int valid_entries )
 {
-	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
-	SDL_RenderFillRect(render, cursor);
-}
-
-void new_line(SDL_FRect* frect, float* lines, float line_h)
-{
-	(*lines)++;
-	frect->x = 10;
-	frect->y = 10.0 + (*lines * line_h);
-}
-
-char* Buffer_To_String(editorBuffer* Buffer, int* cursor_index)
-{
-	int text_length = Buffer->size - (Buffer->gap_end - Buffer->gap_start + 1) ;
-	char* text = malloc(text_length + 1);
-	if (text == NULL) {
-
-		return NULL;
-	}
-	memmove(text, Buffer->buffer, Buffer->gap_start);
-	memmove(text + Buffer->gap_start, Buffer->buffer + Buffer->gap_end + 1 , Buffer->size - Buffer->gap_end - 1);
-	text[text_length] = '\0';
-	*cursor_index = Buffer->cursor;
-	return text;
-}
-
-char* Build_Wrapped_Line(SDL_Window* window, char* text, int* cursor_index)
-{
-	int counter = 0;
-	int index = 0;
-	int len = (int)strlen(text);
-	int width, height;
-	char temp[2];
-	Glyph* glyph;
-	SDL_FRect frect;
-	frect.x = 10;
-
-	if (len == 0) return calloc(1, sizeof(char));
-
-	char* wrappedText = malloc((len * 2) + 1);
-
-	if (wrappedText == NULL)
+	SDL_FRect text;
+	SDL_Texture* texture;
+	for (int i = 0; i < valid_entries; i++)
 	{
-		return NULL;
-	}
-
-	while (index < len)
-	{
-		if(text[index] != '\n') {
-			temp[0] = text[index];
-			temp[1] = '\0';
-			glyph = get_Glyph(text[index]);
-			SDL_GetWindowSize(window, &width, &height);
-			if	((frect.x + glyph->width) < width) {
-				wrappedText[counter] = temp[0];
-				frect.x += glyph->advance;
-				counter++;
-				index++;
-			}
-			else {
-				frect.x = 10;
-				wrappedText[counter] = '\n';
-				counter++;
-				(*cursor_index)++;
-				continue;
-			}
-		}
-		else {
-			frect.x = 10;
-			wrappedText[counter] = '\n';
-			(*cursor_index)++;
-			counter++;
-			index++;
-			continue;
-		}
-	}
-	wrappedText[counter] = '\0';
-	return wrappedText;
-
-}
-
-void render_Text(const char* wrappedText, SDL_FRect* frect, SDL_Renderer* render)
-{
-	Glyph* glyph;
-	int index = 0;
-	int len = strlen(wrappedText) ;
-	float lines = 0;
-	float line_h = 15.0;
-
-	while (index < len)
-	{
-		char c = wrappedText[index];
-		if (c != '\n')
-		{
-			glyph = get_Glyph(c);
-			frect->w = glyph->width;
-			frect->h = glyph->height;
-			SDL_RenderTexture(render, glyph->texture, NULL,frect);
-			frect->x += glyph->advance;
-		}
-		else {
-			new_line(frect, &lines, line_h);
-		}
-		
-		index++;
+		char c = layout[i].c;
+		Glyph* glyph = layout[i].glyph;
+		texture = glyph->texture;
+		text.w = glyph->width;
+		text.h = glyph->height;
+		text.x = layout[i].x;
+		text.y = layout[i].y;
+		SDL_RenderTexture(render, texture, NULL, &text);
 	}
 }
 
-void Get_New_Cursor_Coord(SDL_FRect* cursor, int* cursor_index, char* text)
+void draw_cursor(SDL_Renderer* render, CursorPos* cus, int valid_entries, int cursor_index)
 {
-	cursor->w = 3;
-	cursor->h = 20;
-	cursor->x = 10;
-	cursor->y = 10;
-	Glyph* glyph;
-	int line_count = 0;
-	int index = 0;
-	int len = strlen(text);
-	while(index < *cursor_index && index < len)
-	{
-		char c = text[index];
-		if (c != '\n') {
-			glyph = get_Glyph(c);
-			if (glyph != NULL) { 
-				cursor->x += glyph->advance;
-			}
-		}
-		else if(c == '\n')
-		{
-			line_count++;
-			cursor->y = 10 + (line_count * 15);
-			cursor->x = 10;
-			index++;
-			continue;
-		}
-		index++;
-	}
+	SDL_FRect cursor;
+	cursor.w = 2;
+	cursor.h = 15;
+	cursor.x = cus[cursor_index].x;
+	cursor.y = cus[cursor_index].y;
+	//printf("x = %f  ,  y = %f \n", cursor.x, cursor.y);
+	SDL_SetRenderDrawColor(render, 255, 255, 255, 225);
+	SDL_RenderFillRect(render, &cursor);
 }
 
 int main()
@@ -177,7 +66,6 @@ int main()
 		480,
 		SDL_WINDOW_RESIZABLE
 	);
-
 	if (window == NULL){
 		printf("Window could not be created %s\n", SDL_GetError());
 		SDL_Quit();
@@ -187,7 +75,6 @@ int main()
 
 	SDL_Renderer* render;
 	render = SDL_CreateRenderer(window, NULL);
-
 	if (render == NULL){
 		printf("Render could not be created %s\n", SDL_GetError());
 		SDL_DestroyWindow(window);
@@ -195,44 +82,46 @@ int main()
 	}
 
 
-
-	
-	
 	SDL_StartTextInput(window);
 	
-	SDL_FRect frect, cursor;
 	SDL_Event event;
+
 	editorBuffer Buffer;
 	Buffer = Buffer_Init();
 
+	LayoutChar* layedout = NULL;
+	bool layout_dirty = false;
+
+	CursorPos* cursor = NULL;
+
 	Init_Texture(render);
 
-	bool done = false;
-	int cursor_index;
+	int valid_entries = 0;
 
-
-	while (!done) {	
-		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, &done);
+	bool running = false;
+	while (!running) {	
+		if (SDL_PollEvent(&event)) {
+			event_Handle(&event, &Buffer, &running, &layout_dirty);
 		}	
-
-		frect.x = 10;
-		frect.y = 10;
-
+		
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
 		SDL_RenderClear(render);
 
-		char* text = Buffer_To_String(&Buffer, &cursor_index);
-		char* string = Build_Wrapped_Line(window, text, &cursor_index);	
-		free(text);
+		if (layout_dirty)
+		{
+			layedout = Build_Layout(Buffer, render, window, &valid_entries, &cursor);
+			layout_dirty = false;
+		}
+		if (layedout != NULL && cursor != NULL)
+		{
+			render_text(render, layedout, valid_entries);
+			draw_cursor(render, cursor, valid_entries, Buffer.cursor);
+		}
 		
-		render_Text(string, &frect, render);
-		Get_New_Cursor_Coord(&cursor, &cursor_index, string);
-		free(string);
-		draw_Cursor(&cursor, render);
-
 		SDL_RenderPresent(render);
 	}
 	Destroy_Cache();
+	free(layedout);
+	free(cursor);
 	quit(render, window , Buffer);
 }

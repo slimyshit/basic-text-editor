@@ -5,5 +5,5 @@
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 
-void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done);
+void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done, bool* layout_dirty);
 #endif // !EVENTHANDLING.H

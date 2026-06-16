@@ -40,13 +40,13 @@ void get_Metrics(char character)
 	glyphs[(unsigned char)character].advance = character_w;
 	glyphs[(unsigned char)character].width = character_w;
 	glyphs[(unsigned char)character].height = character_h;
+
 }
 
 void Init_Texture(SDL_Renderer* renderr)
 {
 	render = renderr;
 	font = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 16.0);
-	engine = TTF_CreateRendererTextEngine(render);
 	color.r = 255;
 	color.g = 255;
 	color.b = 255;
@@ -56,6 +56,14 @@ void Init_Texture(SDL_Renderer* renderr)
 void Destroy_Cache()
 {
 	TTF_DestroyRendererTextEngine(engine);
+	
+	for (int i = 0; i < 256; i++)
+	{
+		if (glyphs[i].texture)
+		{
+			SDL_DestroyTexture(glyphs[i].texture);
+		}
+	}
 	TTF_CloseFont(font);
 }
 
@@ -65,7 +73,7 @@ Glyph* get_Glyph(char character)
 	if (received->texture == NULL)
 	{
 		generate_Texture(character);
-		get_Metrics(character);
+		get_Metrics(character);	
 	}
 	return received;
 }

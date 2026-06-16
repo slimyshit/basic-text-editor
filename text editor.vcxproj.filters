@@ -27,6 +27,9 @@
     <ClCompile Include="textureCache.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="layout.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gapbuffer.h">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="textureCache.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="layout.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
