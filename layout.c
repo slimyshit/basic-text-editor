@@ -7,36 +7,28 @@
 #include "layout.h"
 #include "textureCache.h"
 
-LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window,  int* valid_entries, CursorPos** idk)
+LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window,  int* valid_entries, LineInfo** lineData)
 {
 	LayoutChar* layout = malloc(Buffer.size * sizeof(LayoutChar));
-
 	if (layout == NULL)
 	{
 		return NULL;
 	}
 
-	CursorPos* cursor = malloc((Buffer.size + 1) * sizeof(CursorPos));
-
-	if (cursor == NULL)
-	{
-		return NULL;
-	}
-
-
-
-	cursor[0].x = 10;
-	cursor[0].y = 15;
+	LineInfo* lines = malloc((Buffer.size + 1)* sizeof(LineInfo));
+	if (lines == NULL) return NULL;
 
 	int buffer_index = 0;
-	int cursor_index = 1;
 	int layout_count = 0;
+
+	int line_count = 0;
+	int start_index = 0;
 
 	int screen_w, screen_h;
 
 	float char_x = 10;
 	float char_y = 10;
-	float line_height = 15;
+	float line_height = 20;
 
 	Glyph* glyph;
 	SDL_GetWindowSize(window, &screen_w, &screen_h);
@@ -56,17 +48,25 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 		{
 			char_x = 10;
 			char_y += line_height;
-
-			cursor[cursor_index].x = char_x;
-			cursor[cursor_index].y = char_y + 1;
-			
-			cursor_index++;
+			layout[layout_count].c = '\n';
+			layout[layout_count].x = char_x;
+			layout[layout_count].y = char_y;
+			layout[layout_count].glyph = NULL;
 			buffer_index++;
+
+			lines[line_count].end_index = layout_count;
+			lines[line_count].start_index = start_index;
+
+			layout_count++;
+			line_count++;
+			start_index = layout_count;
 			continue;
 		}
+
 		glyph = get_Glyph((unsigned char)c);
+
 		if (glyph != NULL) {
-			if (char_x + glyph->advance > screen_w) {
+			if ((char_x + glyph->advance + 10) > screen_w) {
 
 				char_x = 10;
 				char_y += line_height;
@@ -79,17 +79,14 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 			layout[layout_count].glyph = glyph;
 
 			char_x += glyph->advance;
-		
+
 			layout_count++;
-
-
-			cursor[cursor_index].x = char_x;
-			cursor[cursor_index].y = char_y + 1;
-			cursor_index++;
-		}	
+		}
 		buffer_index++;
 	}
-	*idk = cursor;
+	lines[line_count].end_index = layout_count - 1;
+	lines[line_count].start_index = start_index;
+	*lineData = lines;
 	*valid_entries = layout_count;
 	return layout;
 }

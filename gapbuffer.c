@@ -27,9 +27,9 @@ char* reallocate(char* lastHeapAd,int size, bool* same_ad)
 	return nHeap;
 }
 
-void Buffer_Full_Check(char* string, editorBuffer* orgBuffer)
+void Buffer_Full_Check(editorBuffer* orgBuffer)
 {
-	if (orgBuffer->gap_end == orgBuffer->gap_start)
+	if (orgBuffer->gap_end == orgBuffer->gap_start + 1	)
 	{
 		bool same = false;
 		int old_size = orgBuffer->size;
@@ -49,7 +49,7 @@ void Buffer_Full_Check(char* string, editorBuffer* orgBuffer)
 
 void Buffer_AddChar(char* string, editorBuffer* orgBuffer) {
 
-	Buffer_Full_Check(string,orgBuffer);
+	Buffer_Full_Check(orgBuffer);
 
 	int index = 0;
 
@@ -73,6 +73,7 @@ void Buffer_DelChar(editorBuffer* orgBuffer)
 
 void Buffer_NewLine(editorBuffer* orgBuffer)
 {
+	Buffer_Full_Check(orgBuffer);
 	orgBuffer->buffer[orgBuffer->gap_start] = '\n';
 	orgBuffer->gap_start++;
 	orgBuffer->cursor++;

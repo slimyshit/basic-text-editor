@@ -7,17 +7,18 @@
 
 typedef struct {
     char c;
-    int index;
     float x;
     float y;
     Glyph* glyph;
 } LayoutChar;
 
 typedef struct {
-    float x;
-    float y;
-}CursorPos;
+    int char_count;
+    int start_index;
+    int end_index;
+}LineInfo;
 
-LayoutChar* Build_Layout (editorBuffer textbuffer, SDL_Renderer* render, SDL_Window* window , int* valid_entires, CursorPos** idk);
+
+LayoutChar* Build_Layout (editorBuffer textbuffer, SDL_Renderer* render, SDL_Window* window , int* valid_entires, LineInfo** lineData);
 
 #endif

@@ -28,31 +28,61 @@ void render_text(SDL_Renderer* render, LayoutChar* layout, int valid_entries )
 	{
 		char c = layout[i].c;
 		Glyph* glyph = layout[i].glyph;
-		texture = glyph->texture;
-		text.w = glyph->width;
-		text.h = glyph->height;
-		text.x = layout[i].x;
-		text.y = layout[i].y;
-		SDL_RenderTexture(render, texture, NULL, &text);
+		if (glyph != NULL){
+			texture = glyph->texture;
+			text.w = glyph->width;
+			text.h = glyph->height;
+			text.x = layout[i].x;
+			text.y = layout[i].y;
+			SDL_RenderTexture(render, texture, NULL, &text);
+		}
+		
 	}
 }
 
-void draw_cursor(SDL_Renderer* render, CursorPos* cus, int valid_entries, int cursor_index)
+
+void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index)
 {
 	SDL_FRect cursor;
-	cursor.w = 2;
-	cursor.h = 15;
-	cursor.x = cus[cursor_index].x;
-	cursor.y = cus[cursor_index].y;
-	//printf("x = %f  ,  y = %f \n", cursor.x, cursor.y);
-	SDL_SetRenderDrawColor(render, 255, 255, 255, 225);
+	cursor.w = 3;
+	cursor.h = 20;
+	printf("cursor=%d valid=%d\n", layout_index, valid_entries);
+	if (layout == NULL || layout_index == 0) {
+		cursor.x = 10;
+		cursor.y = 10;
+	}
+	
+	else if (layout[layout_index - 1].c == '\n') {
+		cursor.x = layout[layout_index - 1].x;
+		cursor.y = layout[layout_index - 1].y;
+	}
+	else if (layout_index < valid_entries) {
+		Glyph* glyph = layout[layout_index - 1].glyph;
+		if (glyph != NULL) {
+			int x = glyph->advance;
+			cursor.x = layout[layout_index - 1].x + x;
+			cursor.y = layout[layout_index - 1].y;
+		}
+
+	}
+	else {
+		Glyph* glyph = layout[layout_index - 1].glyph;
+		if (glyph != NULL) {
+			int x = glyph->advance;
+			cursor.x = layout[layout_index - 1].x + x;
+			cursor.y = layout[layout_index - 1].y;
+		}
+	}
+	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderFillRect(render, &cursor);
 }
+
 
 int main()
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		SDL_Quit();
 	}
 	if (TTF_Init() == false) {
 		printf("TTf could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -92,7 +122,8 @@ int main()
 	LayoutChar* layedout = NULL;
 	bool layout_dirty = false;
 
-	CursorPos* cursor = NULL;
+	LineInfo* lineData = NULL;
+	int cursor_line;
 
 	Init_Texture(render);
 
@@ -100,7 +131,7 @@ int main()
 
 	bool running = false;
 	while (!running) {	
-		if (SDL_PollEvent(&event)) {
+		while (SDL_PollEvent(&event)) {
 			event_Handle(&event, &Buffer, &running, &layout_dirty);
 		}	
 		
@@ -109,19 +140,17 @@ int main()
 
 		if (layout_dirty)
 		{
-			layedout = Build_Layout(Buffer, render, window, &valid_entries, &cursor);
+			layedout = Build_Layout(Buffer, render, window, &valid_entries, &lineData);
 			layout_dirty = false;
 		}
-		if (layedout != NULL && cursor != NULL)
+		if (layedout != NULL )
 		{
 			render_text(render, layedout, valid_entries);
-			draw_cursor(render, cursor, valid_entries, Buffer.cursor);
 		}
-		
+		draw_Cursor(render, layedout, valid_entries, Buffer.cursor);
 		SDL_RenderPresent(render);
 	}
 	Destroy_Cache();
 	free(layedout);
-	free(cursor);
 	quit(render, window , Buffer);
 }
