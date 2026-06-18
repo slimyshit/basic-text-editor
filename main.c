@@ -99,7 +99,7 @@ int main()
 
 	while (!running) {	
 		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, Buffer.cursor, total_lines);
+			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, &total_lines);
 		}	
 		
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);

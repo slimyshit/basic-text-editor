@@ -61,7 +61,8 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 
 			layout_count++;
 			line_count++;
-			start_index = layout_count;
+			start_index = layout_count + 1;
+
 			continue;
 		}
 
@@ -86,7 +87,7 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 		}
 		buffer_index++;
 	}
-	lines[line_count].end_index = layout_count - 1;
+	lines[line_count].end_index = layout_count;
 	lines[line_count].start_index = start_index;
 	*totalLines = line_count;
 	*lineData = lines;

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "gapbuffer.h"
 
+
 char* allocate(int size)
 {
 	char* heap = malloc(size * sizeof(char));
@@ -97,6 +98,31 @@ void Buffer_navigate_cursor_x(char*key, editorBuffer* orgBuffer)
 		char overlap = orgBuffer->buffer[orgBuffer->gap_start];
 		orgBuffer->buffer[(orgBuffer->gap_end) + 1] = overlap;
 		orgBuffer->cursor--;
+	}
+}
+
+void Buffer_navigate_cursor_y(editorBuffer* orgBuffer, char* key, int cursor_index)
+{
+	int gap_size = orgBuffer->gap_end - orgBuffer->gap_start + 1;
+
+	if (strcmp(key, "up") == 0)
+	{
+		int diff = orgBuffer->gap_start - cursor_index;
+		printf("gap start = %d    diff = %d\n", orgBuffer->gap_start, diff);
+		memmove(orgBuffer->buffer + cursor_index + gap_size, orgBuffer->buffer + cursor_index, diff);
+		orgBuffer->cursor = cursor_index;
+		orgBuffer->gap_start = cursor_index;
+		orgBuffer->gap_end = cursor_index + gap_size - 1;
+	}
+	else if (strcmp(key, "down") == 0)
+	{
+		int diff = cursor_index - orgBuffer->gap_start;
+
+		memmove(orgBuffer->buffer + orgBuffer->gap_start, orgBuffer->buffer + orgBuffer->gap_end + 1, diff);
+
+		orgBuffer->cursor = cursor_index;
+		orgBuffer->gap_start = cursor_index;
+		orgBuffer->gap_end = cursor_index + gap_size - 1;
 	}
 }
 

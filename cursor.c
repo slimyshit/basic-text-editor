@@ -1,17 +1,19 @@
 #include <stdio.h>
 #include "cursor.h"
+#include "gapbuffer.h"
 
-int get_cursor_line_index(LineInfo* lineData, int cursor_index, int total_lines)
+
+int get_cursor_line_index(LineInfo* lineData, int cursor_index, int* total_lines)
 {
-	for (int i = 0; i <= total_lines; i++)
+	for (int i = 0; i <= *total_lines; i++)
 	{
 		if (cursor_index >= lineData[i].start_index && cursor_index <= lineData[i].end_index)
 		{
-			printf("cursor_index = %d    start_index = %d    end_index = %d    total_lines = %d    i = %d \n", cursor_index, lineData[i].start_index, lineData[i].end_index, total_lines, i);
+			//printf("cursor_index = %d    start_index = %d    end_index = %d    total_lines = %d    i = %d \n", cursor_index, lineData[i].start_index, lineData[i].end_index, total_lines, i);
 			return i;
 		}
 	}
-	return 0;
+	return *total_lines;
 }
 
 void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index)
@@ -48,4 +50,44 @@ void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, in
 	}
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderFillRect(render, &cursor);
+}
+
+void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int* preferredCol, int* total_lines)
+{
+	int current_line = get_cursor_line_index(lineData, Buffer->cursor, total_lines);
+	
+	if (strcmp(key, "up") == 0 && current_line > 0)
+	{
+		int new_line = current_line - 1;
+
+		int line_len = lineData[new_line].end_index - lineData[new_line].start_index ;
+		int new_cursor_col = 0;
+		int temp = *preferredCol;
+		printf("preferred col = %d\n", temp);
+		if (*preferredCol < line_len)
+		{
+			new_cursor_col = lineData[new_line].start_index + *preferredCol;
+		}
+		else {
+			new_cursor_col = lineData[new_line].end_index;
+		}
+		Buffer_navigate_cursor_y(Buffer, "up", new_cursor_col);
+	}
+
+	if (strcmp(key, "down") == 0 && current_line < *total_lines)
+	{
+		int new_line = current_line + 1;
+
+		int line_len = lineData[new_line].end_index - lineData[new_line].start_index;
+		int new_cursor_col = 0;
+
+		if (*preferredCol < line_len)
+		{
+			new_cursor_col = lineData[new_line].start_index + *preferredCol;
+		}
+		else {
+			new_cursor_col = lineData[new_line].end_index;
+		}
+		Buffer_navigate_cursor_y(Buffer, "down", new_cursor_col);
+	}
 }
