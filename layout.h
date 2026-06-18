@@ -13,12 +13,11 @@ typedef struct {
 } LayoutChar;
 
 typedef struct {
-    int char_count;
     int start_index;
     int end_index;
 }LineInfo;
 
 
-LayoutChar* Build_Layout (editorBuffer textbuffer, SDL_Renderer* render, SDL_Window* window , int* valid_entires, LineInfo** lineData);
+LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window, int* valid_entries, LineInfo** lineData, int* totalLines);
 
 #endif

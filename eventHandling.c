@@ -1,8 +1,10 @@
 #include "gapbuffer.h"
+#include "cursor.h"
+#include "eventHandling.h"
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 
-void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done, bool* layout_dirty) {
+void event_Handle(SDL_Event* event, editorBuffer* Buffer,LineInfo* lineData, bool* done, bool* layout_dirty, int* preferredCol, int cursor_index, int total_lines) {
 	if (event->type == SDL_EVENT_TEXT_INPUT) {
 		Buffer_AddChar(event->text.text, Buffer);
 		*layout_dirty = true;
@@ -23,12 +25,22 @@ void event_Handle(SDL_Event* event, editorBuffer* Buffer, bool* done, bool* layo
 		else if(event->key.key == SDLK_RIGHT)
 		{
 			Buffer_navigate_cursor_x("right", Buffer);
-			*layout_dirty = true;
+			if (lineData != NULL)
+			{
+				int cursor_line = get_cursor_line_index(lineData, cursor_index, total_lines);	
+				preferredCol = cursor_index - lineData[cursor_line].start_index;
+				printf("cursor_line = %d    preferredCol = %d\n", cursor_line, preferredCol);
+			}
 		}
 		else if (event->key.key == SDLK_LEFT)
 		{
 			Buffer_navigate_cursor_x("left", Buffer);
-			*layout_dirty = true;
+			if (lineData != NULL)
+			{
+				int cursor_line = get_cursor_line_index(lineData, cursor_index, total_lines);
+				preferredCol = cursor_index - lineData[cursor_line].start_index;
+				printf("preferredCol = %d\n", preferredCol);
+			}
 			
 		}
 		else if (event->key.key == SDLK_UP)

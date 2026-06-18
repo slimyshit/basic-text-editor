@@ -7,7 +7,7 @@
 #include "layout.h"
 #include "textureCache.h"
 
-LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window,  int* valid_entries, LineInfo** lineData)
+LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window,  int* valid_entries, LineInfo** lineData, int* totalLines)
 {
 	LayoutChar* layout = malloc(Buffer.size * sizeof(LayoutChar));
 	if (layout == NULL)
@@ -57,6 +57,8 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 			lines[line_count].end_index = layout_count;
 			lines[line_count].start_index = start_index;
 
+			//printf("line = %d    start_index = %d    end_index = %d\n", line_count, lines[line_count].start_index, lines[line_count].end_index);
+
 			layout_count++;
 			line_count++;
 			start_index = layout_count;
@@ -86,6 +88,7 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 	}
 	lines[line_count].end_index = layout_count - 1;
 	lines[line_count].start_index = start_index;
+	*totalLines = line_count;
 	*lineData = lines;
 	*valid_entries = layout_count;
 	return layout;

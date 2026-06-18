@@ -6,7 +6,7 @@
 #include "eventHandling.h"
 #include "textureCache.h"
 #include "layout.h"
-
+#include "cursor.h"
 
 void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 {
@@ -40,42 +40,6 @@ void render_text(SDL_Renderer* render, LayoutChar* layout, int valid_entries )
 	}
 }
 
-
-void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index)
-{
-	SDL_FRect cursor;
-	cursor.w = 3;
-	cursor.h = 20;
-	printf("cursor=%d valid=%d\n", layout_index, valid_entries);
-	if (layout == NULL || layout_index == 0) {
-		cursor.x = 10;
-		cursor.y = 10;
-	}
-	
-	else if (layout[layout_index - 1].c == '\n') {
-		cursor.x = layout[layout_index - 1].x;
-		cursor.y = layout[layout_index - 1].y;
-	}
-	else if (layout_index < valid_entries) {
-		Glyph* glyph = layout[layout_index - 1].glyph;
-		if (glyph != NULL) {
-			int x = glyph->advance;
-			cursor.x = layout[layout_index - 1].x + x;
-			cursor.y = layout[layout_index - 1].y;
-		}
-
-	}
-	else {
-		Glyph* glyph = layout[layout_index - 1].glyph;
-		if (glyph != NULL) {
-			int x = glyph->advance;
-			cursor.x = layout[layout_index - 1].x + x;
-			cursor.y = layout[layout_index - 1].y;
-		}
-	}
-	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
-	SDL_RenderFillRect(render, &cursor);
-}
 
 
 int main()
@@ -111,9 +75,9 @@ int main()
 		SDL_Quit();
 	}
 
+	Init_Texture(render);
 
 	SDL_StartTextInput(window);
-	
 	SDL_Event event;
 
 	editorBuffer Buffer;
@@ -121,18 +85,21 @@ int main()
 
 	LayoutChar* layedout = NULL;
 	bool layout_dirty = false;
-
-	LineInfo* lineData = NULL;
-	int cursor_line;
-
-	Init_Texture(render);
-
 	int valid_entries = 0;
 
+
+	LineInfo* lineData = NULL;
+	int cursor_line = 0;
+	int preferred_col = 0;
+	int total_lines = 0;
+
+
+
 	bool running = false;
+
 	while (!running) {	
 		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, &running, &layout_dirty);
+			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, Buffer.cursor, total_lines);
 		}	
 		
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
@@ -140,7 +107,7 @@ int main()
 
 		if (layout_dirty)
 		{
-			layedout = Build_Layout(Buffer, render, window, &valid_entries, &lineData);
+			layedout = Build_Layout(Buffer, render, window, &valid_entries, &lineData, &total_lines);
 			layout_dirty = false;
 		}
 		if (layedout != NULL )
@@ -150,6 +117,7 @@ int main()
 		draw_Cursor(render, layedout, valid_entries, Buffer.cursor);
 		SDL_RenderPresent(render);
 	}
+
 	Destroy_Cache();
 	free(layedout);
 	quit(render, window , Buffer);
