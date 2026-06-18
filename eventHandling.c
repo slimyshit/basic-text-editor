@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "layout.h"
+#include "editingFile.h"
 
 void event_Handle(SDL_Event* event, editorBuffer* Buffer,LineInfo* lineData, bool* done, bool* layout_dirty, int* preferredCol, int* total_lines) {
 		if (event->type == SDL_EVENT_TEXT_INPUT) {
@@ -68,6 +69,14 @@ void event_Handle(SDL_Event* event, editorBuffer* Buffer,LineInfo* lineData, boo
 			{
 				navigate_cursor_y("down", Buffer, lineData, preferredCol, total_lines);
 			}
+			else if (event->key.key == SDLK_S) {
+
+				if (event->key.mod & SDL_KMOD_CTRL) {
+					saveFile(Buffer);
+					*layout_dirty = true;
+				}
+			}
 		
 		}
+
 }	

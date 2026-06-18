@@ -7,7 +7,7 @@
 #include "layout.h"
 #include "textureCache.h"
 
-LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window,  int* valid_entries, LineInfo** lineData, int* totalLines)
+LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window,  int* valid_entries, LineInfo** lineData, int* totalLines, int* line_offset)
 {
 	LayoutChar* layout = malloc(Buffer.size * sizeof(LayoutChar));
 	if (layout == NULL)
@@ -25,6 +25,7 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 	int start_index = 0;
 
 	int screen_w, screen_h;
+	int Lines_limit = 0;
 
 	float char_x = 10;
 	float char_y = 10;
@@ -32,6 +33,9 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 
 	Glyph* glyph;
 	SDL_GetWindowSize(window, &screen_w, &screen_h);
+	*line_offset = 0;
+	Lines_limit = (screen_h - 10) / 20;
+	printf("limit = %d\n", Lines_limit);
 	while (buffer_index < Buffer.size)
 	{
 		if (buffer_index == Buffer.gap_start)
@@ -74,6 +78,10 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 				char_x = 10;
 				char_y += line_height;
 
+				lines[line_count].end_index = layout_count;
+				lines[line_count].start_index = start_index;
+				line_count++;
+				start_index = layout_count + 1;
 			}
 
 			layout[layout_count].c = c;
@@ -86,9 +94,15 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 			layout_count++;
 		}
 		buffer_index++;
+		
+	}
+	if (line_count >= Lines_limit)
+	{
+		*line_offset = line_count - Lines_limit;
 	}
 	lines[line_count].end_index = layout_count;
 	lines[line_count].start_index = start_index;
+	printf("lines currently = %d\n", line_count);
 	*totalLines = line_count;
 	*lineData = lines;
 	*valid_entries = layout_count;

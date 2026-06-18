@@ -7,6 +7,7 @@
 #include "textureCache.h"
 #include "layout.h"
 #include "cursor.h"
+#include "editingFile.h"
 
 void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 {
@@ -20,11 +21,18 @@ void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 	free(Buffer.buffer);
 }
 
-void render_text(SDL_Renderer* render, LayoutChar* layout, int valid_entries )
+int render_text(SDL_Renderer* render, LayoutChar* layout, LineInfo* lineData, int valid_entries, int line_offset )
 {
 	SDL_FRect text;
 	SDL_Texture* texture;
-	for (int i = 0; i < valid_entries; i++)
+	int temp = 0;
+	int vertical_offset = 0;
+	if (line_offset > 0)
+	{
+		temp = lineData[line_offset].start_index;
+		vertical_offset = 10 + (line_offset * 20);
+	}
+	for (int i = temp; i < valid_entries; i++)
 	{
 		char c = layout[i].c;
 		Glyph* glyph = layout[i].glyph;
@@ -33,11 +41,12 @@ void render_text(SDL_Renderer* render, LayoutChar* layout, int valid_entries )
 			text.w = glyph->width;
 			text.h = glyph->height;
 			text.x = layout[i].x;
-			text.y = layout[i].y;
+			text.y = layout[i].y - vertical_offset;
 			SDL_RenderTexture(render, texture, NULL, &text);
 		}
 		
 	}
+	return vertical_offset;
 }
 
 
@@ -83,16 +92,23 @@ int main()
 	editorBuffer Buffer;
 	Buffer = Buffer_Init();
 
+
 	LayoutChar* layedout = NULL;
 	bool layout_dirty = false;
 	int valid_entries = 0;
+
+	if (readFile(&Buffer))
+	{
+		layout_dirty = true;
+	}
 
 
 	LineInfo* lineData = NULL;
 	int cursor_line = 0;
 	int preferred_col = 0;
 	int total_lines = 0;
-
+	int line_offset = 0;
+	int vertical_offset = 0;
 
 
 	bool running = false;
@@ -107,14 +123,14 @@ int main()
 
 		if (layout_dirty)
 		{
-			layedout = Build_Layout(Buffer, render, window, &valid_entries, &lineData, &total_lines);
+			layedout = Build_Layout(Buffer, render, window, &valid_entries, &lineData, &total_lines, &line_offset);
 			layout_dirty = false;
 		}
-		if (layedout != NULL )
+		if (layedout != NULL && lineData != NULL)
 		{
-			render_text(render, layedout, valid_entries);
+			vertical_offset = render_text(render, layedout, lineData, valid_entries, line_offset);
 		}
-		draw_Cursor(render, layedout, valid_entries, Buffer.cursor);
+		draw_Cursor(render, layedout, valid_entries, Buffer.cursor, vertical_offset);
 		SDL_RenderPresent(render);
 	}
 

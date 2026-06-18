@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cursor.c" />
+    <ClCompile Include="editingFile.c" />
     <ClCompile Include="eventHandling.c" />
     <ClCompile Include="gapbuffer.c" />
     <ClCompile Include="layout.c" />
@@ -149,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cursor.h" />
+    <ClInclude Include="editingFile.h" />
     <ClInclude Include="eventHandling.h" />
     <ClInclude Include="gapbuffer.h" />
     <ClInclude Include="layout.h" />

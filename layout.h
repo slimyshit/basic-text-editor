@@ -18,6 +18,6 @@ typedef struct {
 }LineInfo;
 
 
-LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window, int* valid_entries, LineInfo** lineData, int* totalLines);
+LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* window, int* valid_entries, LineInfo** lineData, int* totalLines, int* line_offset);
 
 #endif

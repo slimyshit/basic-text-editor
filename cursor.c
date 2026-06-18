@@ -16,11 +16,12 @@ int get_cursor_line_index(LineInfo* lineData, int cursor_index, int* total_lines
 	return *total_lines;
 }
 
-void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index)
+void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index, int line_offset)
 {
 	SDL_FRect cursor;
 	cursor.w = 3;
 	cursor.h = 20;
+
 	//printf("cursor=%d valid=%d\n", layout_index, valid_entries);
 	if (layout == NULL || layout_index == 0) {
 		cursor.x = 10;

@@ -1,6 +1,7 @@
 #pragma once
 #ifndef GAPBUFFER_H
 #define	GAPBUFFER_H
+#include <stdbool.h>
 
 typedef struct {
 	char* buffer;
@@ -11,6 +12,8 @@ typedef struct {
 }editorBuffer;
 
 editorBuffer Buffer_Init();
+
+char* reallocate(char* lastHeapAd, int size, bool* same_ad);
 
 void Buffer_AddChar(char* string, editorBuffer* orgBuffer);
 

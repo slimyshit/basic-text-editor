@@ -33,6 +33,9 @@
     <ClCompile Include="cursor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="editingFile.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gapbuffer.h">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="cursor.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="editingFile.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
