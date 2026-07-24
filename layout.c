@@ -61,7 +61,7 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 			lines[line_count].end_index = layout_count;
 			lines[line_count].start_index = start_index;
 
-			printf("line = %d    start_index = %d    end_index = %d\n", line_count, lines[line_count].start_index, lines[line_count].end_index);
+			//printf("line = %d    start_index = %d    end_index = %d\n", line_count, lines[line_count].start_index, lines[line_count].end_index);
 
 			layout_count++;
 			line_count++;
@@ -102,7 +102,6 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 	}
 	lines[line_count].end_index = layout_count;
 	lines[line_count].start_index = start_index;
-	printf("lines currently = %d\n", line_count);
 	*totalLines = line_count;
 	*lineData = lines;
 	*valid_entries = layout_count;

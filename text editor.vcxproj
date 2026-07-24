@@ -147,6 +147,7 @@
     <ClCompile Include="layout.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="textureCache.c" />
+    <ClCompile Include="Utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cursor.h" />
@@ -155,6 +156,7 @@
     <ClInclude Include="gapbuffer.h" />
     <ClInclude Include="layout.h" />
     <ClInclude Include="textureCache.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

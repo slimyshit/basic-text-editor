@@ -16,29 +16,32 @@ int get_cursor_line_index(LineInfo* lineData, int cursor_index, int* total_lines
 	return *total_lines;
 }
 
-void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index, int line_offset)
+void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index, int cursor_offset, int *line_skip, int w_height)
 {
 	SDL_FRect cursor;
 	cursor.w = 3;
 	cursor.h = 20;
-	int offset = 0;
-	if (line_offset > 0) offset = line_offset;
-	//printf("cursor=%d valid=%d\n", layout_index, valid_entries);
+	float cursor_x = layout[layout_index - 1].x;
+	float cursor_y = layout[layout_index - 1].y;
+
+	if (cursor_y - cursor_offset < 10.0) (*line_skip)--;
+	if (cursor_y - cursor_offset > w_height) (*line_skip)++;
+
 	if (layout == NULL || layout_index == 0) {
 		cursor.x = 10;
 		cursor.y = 10;
 	}
 
 	else if (layout[layout_index - 1].c == '\n') {
-		cursor.x = layout[layout_index - 1].x;
-		cursor.y = layout[layout_index - 1].y - line_offset;
+		cursor.x = cursor_x;
+		cursor.y = cursor_y - cursor_offset;
 	}
 	else if (layout_index < valid_entries) {
 		Glyph* glyph = layout[layout_index - 1].glyph;
 		if (glyph != NULL) {
 			int glyph_width = glyph->advance;
-			cursor.x = layout[layout_index - 1].x + glyph_width;
-			cursor.y = layout[layout_index - 1].y - line_offset;
+			cursor.x = cursor_x + glyph_width;
+			cursor.y = cursor_y - cursor_offset;
 		}
 
 	}
@@ -46,15 +49,15 @@ void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, in
 		Glyph* glyph = layout[layout_index - 1].glyph;
 		if (glyph != NULL) {
 			int x = glyph->advance;
-			cursor.x = layout[layout_index - 1].x + x;
-			cursor.y = layout[layout_index - 1].y - line_offset;
+			cursor.x = cursor_x + x;
+			cursor.y = cursor_y - cursor_offset;
 		}
 	}
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderFillRect(render, &cursor);
 }
 
-void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int* preferredCol, int* total_lines,  int *line_skip_count)
+void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int* preferredCol, int* total_lines)
 {
 	int current_line = get_cursor_line_index(lineData, Buffer->cursor, total_lines);
 	
@@ -74,7 +77,6 @@ void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int*
 			new_cursor_col = lineData[new_line].end_index;
 		}
 		Buffer_navigate_cursor_y(Buffer, "up", new_cursor_col);
-		(*line_skip_count)--;
 	}
 
 	if (strcmp(key, "down") == 0 && current_line < *total_lines)
@@ -92,6 +94,5 @@ void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int*
 			new_cursor_col = lineData[new_line].end_index;
 		}
 		Buffer_navigate_cursor_y(Buffer, "down", new_cursor_col);
-		(*line_skip_count)++;
 	}
 }

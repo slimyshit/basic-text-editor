@@ -8,6 +8,7 @@
 #include "layout.h"
 #include "cursor.h"
 #include "editingFile.h"
+#include "Utils.h"
 
 void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 {
@@ -36,6 +37,7 @@ int render_text(SDL_Renderer *render, LayoutChar *layout, LineInfo *lineData, in
 
 	for (int i = temp; i < valid_entries; i++)
 	{
+		printf("temp = %d  ,  valid_entries = %d\n", temp, valid_entries);
 		char c = layout[i].c;
 		Glyph* glyph = layout[i].glyph;
 		if (glyph != NULL){
@@ -95,7 +97,7 @@ int main()
 	Buffer = Buffer_Init();
 
 
-	LayoutChar* layedout = NULL;
+	LayoutChar *layedout = NULL;
 	bool layout_dirty = false;
 	int valid_entries = 0;
 
@@ -105,8 +107,7 @@ int main()
 	}
 
 
-	LineInfo* lineData = NULL;
-	int cursor_line = 0;
+	LineInfo *lineData = NULL;
 	int preferred_col = 0;
 	int total_lines = 0;
 	int line_offset = 0;
@@ -117,7 +118,7 @@ int main()
 
 	while (!running) {	
 		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, &total_lines, &line_offset);
+			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, &total_lines);
 		}	
 		
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
@@ -132,11 +133,12 @@ int main()
 		{
 			vertical_offset = render_text(render, layedout, lineData, valid_entries, line_offset);
 		}
-		draw_Cursor(render, layedout, valid_entries, Buffer.cursor, vertical_offset);
+		draw_Cursor(render, layedout, valid_entries, Buffer.cursor, vertical_offset, &line_offset, get_window_height(window));
 		SDL_RenderPresent(render);
 	}
 
 	Destroy_Cache();
+	free(lineData);
 	free(layedout);
 	quit(render, window , Buffer);
 }
