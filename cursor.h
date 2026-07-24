@@ -9,6 +9,6 @@ int get_cursor_line_index(LineInfo* lineData, int cursor_index, int* total_lines
 
 void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index, int line_offset);
 
-void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int* preferredCol, int* total_lines);
+void navigate_cursor_y(char* key, editorBuffer* Buffer, LineInfo* lineData, int* preferredCol, int* total_lines, int *line_skip_count);
 
 #endif

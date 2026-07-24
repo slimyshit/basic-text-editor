@@ -7,7 +7,7 @@
 #include "layout.h"
 #include "editingFile.h"
 
-void event_Handle(SDL_Event* event, editorBuffer* Buffer,LineInfo* lineData, bool* done, bool* layout_dirty, int* preferredCol, int* total_lines) {
+void event_Handle(SDL_Event* event, editorBuffer* Buffer,LineInfo* lineData, bool* done, bool* layout_dirty, int* preferredCol, int* total_lines, int *line_skip_count) {
 		if (event->type == SDL_EVENT_TEXT_INPUT) {
 			Buffer_AddChar(event->text.text, Buffer);
 			if (lineData != NULL)
@@ -63,11 +63,11 @@ void event_Handle(SDL_Event* event, editorBuffer* Buffer,LineInfo* lineData, boo
 			else if (event->key.key == SDLK_UP)
 			{
 
-				navigate_cursor_y("up", Buffer, lineData, preferredCol, total_lines);
+				navigate_cursor_y("up", Buffer, lineData, preferredCol, total_lines, line_skip_count);
 			}
 			else if (event->key.key == SDLK_DOWN)
 			{
-				navigate_cursor_y("down", Buffer, lineData, preferredCol, total_lines);
+				navigate_cursor_y("down", Buffer, lineData, preferredCol, total_lines, line_skip_count);
 			}
 			else if (event->key.key == SDLK_S) {
 

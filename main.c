@@ -21,17 +21,19 @@ void quit(SDL_Renderer* render, SDL_Window* window, editorBuffer Buffer )
 	free(Buffer.buffer);
 }
 
-int render_text(SDL_Renderer* render, LayoutChar* layout, LineInfo* lineData, int valid_entries, int line_offset )
+int render_text(SDL_Renderer *render, LayoutChar *layout, LineInfo *lineData, int valid_entries, int new_line_start)
 {
 	SDL_FRect text;
 	SDL_Texture* texture;
 	int temp = 0;
 	int vertical_offset = 0;
-	if (line_offset > 0)
+
+	if (new_line_start > 0)
 	{
-		temp = lineData[line_offset].start_index;
-		vertical_offset = 10 + (line_offset * 20);
+		vertical_offset = 10 + (new_line_start * 20);
+		temp = lineData[new_line_start].start_index;
 	}
+
 	for (int i = temp; i < valid_entries; i++)
 	{
 		char c = layout[i].c;
@@ -115,7 +117,7 @@ int main()
 
 	while (!running) {	
 		while (SDL_PollEvent(&event)) {
-			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, &total_lines);
+			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, &total_lines, &line_offset);
 		}	
 		
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
