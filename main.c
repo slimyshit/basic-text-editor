@@ -68,7 +68,7 @@ int main()
 
 	SDL_Window* window;
 	window = SDL_CreateWindow(
-		"nigga",
+		"basic-text-editor",
 		640,
 		480,
 		SDL_WINDOW_RESIZABLE
@@ -105,7 +105,7 @@ int main()
 	{
 		layout_dirty = true;
 	}
-
+	
 
 	LineInfo *lineData = NULL;
 	int preferred_col = 0;
@@ -120,7 +120,6 @@ int main()
 		while (SDL_PollEvent(&event)) {
 			event_Handle(&event, &Buffer, lineData, &running, &layout_dirty, &preferred_col, &total_lines);
 		}	
-		
 		SDL_SetRenderDrawColor(render, 54, 56, 64, 225);
 		SDL_RenderClear(render);
 
@@ -133,8 +132,11 @@ int main()
 		{
 			vertical_offset = render_text(render, layedout, lineData, valid_entries, line_offset);
 		}
+		
 		draw_Cursor(render, layedout, valid_entries, Buffer.cursor, vertical_offset, &line_offset, get_window_height(window));
 		SDL_RenderPresent(render);
+		
+
 	}
 
 	Destroy_Cache();

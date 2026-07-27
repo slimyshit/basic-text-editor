@@ -34,7 +34,7 @@ LayoutChar* Build_Layout(editorBuffer Buffer, SDL_Renderer* render, SDL_Window* 
 	Glyph* glyph;
 	SDL_GetWindowSize(window, &screen_w, &screen_h);
 	*line_offset = 0;
-	Lines_limit = (int) (screen_h - 10) / 20;
+	Lines_limit = (int) (screen_h - 30) / 20;
 	printf("limit = %d\n", Lines_limit);
 	while (buffer_index < Buffer.size)
 	{

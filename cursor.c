@@ -16,16 +16,21 @@ int get_cursor_line_index(LineInfo* lineData, int cursor_index, int* total_lines
 	return *total_lines;
 }
 
-void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index, int cursor_offset, int *line_skip, int w_height)
+void draw_Cursor(SDL_Renderer* render, LayoutChar* layout, int valid_entries, int layout_index, int cursor_offset, int* line_skip, int w_height)
 {
 	SDL_FRect cursor;
 	cursor.w = 3;
 	cursor.h = 20;
-	float cursor_x = layout[layout_index - 1].x;
-	float cursor_y = layout[layout_index - 1].y;
+	float cursor_x = 0;
+	float cursor_y = 0;
 
-	if (cursor_y - cursor_offset < 10.0) (*line_skip)--;
-	if (cursor_y - cursor_offset > w_height) (*line_skip)++;
+	if (layout != NULL)
+	{
+		cursor_x = layout[layout_index - 1].x;
+		cursor_y = layout[layout_index - 1].y;
+		if (cursor_y - cursor_offset < 10.0) (*line_skip)--;
+		if (cursor_y - cursor_offset > w_height) (*line_skip)++;
+	}
 
 	if (layout == NULL || layout_index == 0) {
 		cursor.x = 10;

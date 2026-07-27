@@ -17,34 +17,32 @@ char* allocate(int size)
 char* reallocate(char* lastHeapAd,int size, bool* same_ad)
 {
 	char* nHeap = realloc(lastHeapAd, size * sizeof(char));
-
+	*same_ad = (nHeap != NULL);
 	if (nHeap == NULL) {
 		return lastHeapAd;
-	}
-	if (nHeap == lastHeapAd)
-	{
-		*same_ad = true;
 	}
 	return nHeap;
 }
 
 void Buffer_Full_Check(editorBuffer* orgBuffer)
 {
-	if (orgBuffer->gap_end == orgBuffer->gap_start + 1	)
+	if (orgBuffer->gap_end <= orgBuffer->gap_start + 1)
 	{
 		bool same = false;
 		int old_size = orgBuffer->size;
 		int new_size = orgBuffer->size * 2;
-		int old_gend = orgBuffer->gap_end;
+		int old_gend = orgBuffer->gap_end;	
 		int copy_length = old_size - orgBuffer->gap_end - 1;
+
 		char* new_buffer = reallocate(orgBuffer->buffer, new_size, &same);
-		if (new_buffer != orgBuffer->buffer || same == true) {
-			orgBuffer->buffer = new_buffer;
-			orgBuffer->size = new_size;
-			orgBuffer->gap_end = new_size - copy_length - 1;
-			memmove(orgBuffer->buffer + orgBuffer->gap_end + 1, orgBuffer->buffer + old_gend + 1, copy_length);
-			printf("%d", orgBuffer->size);
+			
+		if (!same) {
+			return;
 		}
+		orgBuffer->buffer = new_buffer;
+		orgBuffer->size = new_size;
+		orgBuffer->gap_end = new_size - copy_length - 1;
+		memmove(orgBuffer->buffer + orgBuffer->gap_end + 1, orgBuffer->buffer + old_gend + 1, copy_length);
 	}
 }
 
